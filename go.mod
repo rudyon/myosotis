@@ -1,4 +1,4 @@
-module rudyon/leitner
+module rudyon/memory
 
 go 1.21.4
 

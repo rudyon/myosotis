@@ -23,7 +23,7 @@ type Card struct {
 
 func main() {
 
-	rl.InitWindow(width, height, "leitner")
+	rl.InitWindow(width, height, "memory")
 	rl.SetTargetFPS(60)
 
 	// Example usage
