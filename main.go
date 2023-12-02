@@ -22,9 +22,7 @@ type Card struct {
 }
 
 func main() {
-
 	rl.InitWindow(width, height, "memory")
-	rl.SetTargetFPS(60)
 
 	// Example usage
 	myCard := Card{
@@ -33,13 +31,15 @@ func main() {
 	}
 
 	for !rl.WindowShouldClose() {
+		delta_time := rl.GetFrameTime() * float32(rl.GetFPS())
+
 		if rl.IsKeyPressed(rl.KeySpace) {
 			flipping = true
 		}
 
 		if flipping {
 			if flip_percentage > 0 {
-				flip_percentage -= 0.1
+				flip_percentage -= 0.015 * delta_time
 			} else {
 				flip_percentage = 1
 				flipping = false
