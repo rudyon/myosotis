@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -33,13 +35,9 @@ type Card struct {
 func main() {
 	rl.InitWindow(width, height, "memory")
 
-	// Example usage
-	cards = append(cards,
-		Card{Front: "The pioneer of the experimental science of memory was...", Back: "Hermann Ebbinghaus", LastReview: -1, Interval: -1},
-		Card{Front: "In computer science, the acronym RAM stands for...", Back: "Random Access Memory", LastReview: -1, Interval: -1},
-	)
+	loadCards()
 
-	cardIndex := 0
+	cardIndex := -1
 
 	for !rl.WindowShouldClose() {
 		delta_time = rl.GetFrameTime() * float32(rl.GetFPS())
@@ -49,6 +47,36 @@ func main() {
 		updateCardIndex(&cardIndex)
 
 		draw()
+
+		saveCards()
+	}
+}
+
+func loadCards() {
+	fileData, err := os.ReadFile("cards.json")
+	if err != nil {
+		fmt.Println("Error loading cards:", err)
+		return
+	}
+
+	err = json.Unmarshal(fileData, &cards)
+	if err != nil {
+		fmt.Println("Error unmarshalling cards:", err)
+		return
+	}
+}
+
+func saveCards() {
+	fileData, err := json.MarshalIndent(cards, "", "    ")
+	if err != nil {
+		fmt.Println("Error marshalling cards:", err)
+		return
+	}
+
+	err = os.WriteFile("cards.json", fileData, 0644)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
 	}
 }
 
