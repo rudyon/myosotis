@@ -1,72 +1,189 @@
 package main
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 const (
-	width, height           int32   = 600, 600
-	font_size               int32   = 32
-	card_width, card_height float32 = float32(width - 200), float32(height - 200)
+	width, height         int32   = 600, 600
+	fontSize              int32   = 32
+	cardWidth, cardHeight float32 = float32(width - 200), float32(height - 200)
 )
 
-var flipped bool
-var flipping bool
-var flip_percentage float32 = 1
+var (
+	flipped        bool
+	flipping       bool
+	flipPercentage float32 = 1
+	cards          []Card
+	card           Card
+	delta_time     = rl.GetFrameTime() * float32(rl.GetFPS())
+)
 
 type Card struct {
-	Front string
-	Back  string
+	Front      string
+	Back       string
+	LastReview int64
+	Interval   int
 }
 
 func main() {
 	rl.InitWindow(width, height, "memory")
 
 	// Example usage
-	myCard := Card{
-		Front: "The pioneer of the experimental science of memory was...",
-		Back:  "Hermann Ebbinghaus",
-	}
+	cards = append(cards,
+		Card{Front: "The pioneer of the experimental science of memory was...", Back: "Hermann Ebbinghaus", LastReview: -1, Interval: -1},
+		Card{Front: "In computer science, the acronym RAM stands for...", Back: "Random Access Memory", LastReview: -1, Interval: -1},
+	)
+
+	cardIndex := 0
 
 	for !rl.WindowShouldClose() {
-		delta_time := rl.GetFrameTime() * float32(rl.GetFPS())
+		delta_time = rl.GetFrameTime() * float32(rl.GetFPS())
 
-		if rl.IsKeyPressed(rl.KeySpace) {
-			flipping = true
+		handleInput(&cardIndex)
+
+		updateCardIndex(&cardIndex)
+
+		draw()
+	}
+}
+
+func handleInput(cardIndex *int) {
+
+	if rl.IsKeyPressed(rl.KeySpace) {
+		flipping = true
+	}
+
+	if rl.IsKeyPressed(rl.KeyG) {
+		recallGood(cardIndex)
+	}
+
+	if rl.IsKeyPressed(rl.KeyB) {
+		recallBad(cardIndex)
+	}
+}
+
+func recallGood(cardIndex *int) {
+	if cards[*cardIndex].Interval == -1 {
+		cards[*cardIndex].Interval = 2
+	} else {
+		cards[*cardIndex].Interval *= 2
+	}
+
+	cards[*cardIndex].LastReview = time.Now().Unix()
+
+	if *cardIndex < len(cards) {
+		handleCardIndex(cardIndex)
+	} else {
+		*cardIndex = -1
+	}
+}
+
+func recallBad(cardIndex *int) {
+	cards[*cardIndex].Interval = 1
+
+	cards[*cardIndex].LastReview = time.Now().Unix()
+
+	if *cardIndex < len(cards) {
+		handleCardIndex(cardIndex)
+	} else {
+		*cardIndex = -1
+	}
+}
+
+func handleCardIndex(cardIndex *int) {
+	for *cardIndex < len(cards) {
+		if cards[*cardIndex].Interval == -1 || time.Since(time.Unix(cards[*cardIndex].LastReview, 0)).Minutes() > float64(cards[*cardIndex].Interval) {
+			// If the condition is met, break out of the loop
+			break
 		}
 
-		if flipping {
-			if flip_percentage > 0 {
-				flip_percentage -= 0.015 * delta_time
-			} else {
-				flip_percentage = 1
-				flipping = false
-				flipped = !flipped
-			}
+		// If the condition is not met, increment the card index and print the card
+		fmt.Println(cards[*cardIndex])
+		*cardIndex++
+	}
+
+	if *cardIndex < len(cards) {
+		flipping = true
+		flipped = true
+	} else {
+		*cardIndex = -1
+	}
+}
+
+func updateCardIndex(cardIndex *int) {
+	if *cardIndex >= len(cards) {
+		*cardIndex = 0
+	}
+
+	if *cardIndex != -1 {
+		card = cards[*cardIndex]
+	} else {
+		card = Card{Front: "There are no more cards.", Back: "Congratulations!!!", LastReview: -1, Interval: -1}
+	}
+}
+
+func draw() {
+	if flipping {
+		updateFlipPercentage()
+	}
+
+	rl.BeginDrawing()
+	rl.ClearBackground(rl.Black)
+
+	// Draw the review count at the top-left corner
+	drawReviewCount()
+
+	if flipped {
+		drawFlippedCard()
+	} else {
+		drawUnflippedCard()
+	}
+
+	rl.EndDrawing()
+}
+
+func drawReviewCount() {
+	count := 0
+	for i := 0; i < len(cards); i++ {
+		if cards[i].Interval == -1 || time.Since(time.Unix(cards[i].LastReview, 0)).Minutes() > float64(cards[i].Interval) {
+			count++
 		}
+	}
 
-		rl.BeginDrawing()
-		rl.ClearBackground(rl.Black)
+	countText := fmt.Sprintf("Reviews waiting: %d", count)
+	rl.DrawText(countText, 10, 10, fontSize, rl.White)
+}
 
-		if flipped {
-			if flipping {
-				drawCard(myCard.Back, flip_percentage, colorBrightness(rl.White, -flip_percentage))
-				drawCard(myCard.Front, 1-flip_percentage, colorBrightness(rl.White, flip_percentage))
-			} else {
-				drawCard(myCard.Back, flip_percentage, rl.White)
-			}
-		} else {
-			if flipping {
-				drawCard(myCard.Front, flip_percentage, colorBrightness(rl.White, -flip_percentage))
-				drawCard(myCard.Back, 1-flip_percentage, colorBrightness(rl.White, flip_percentage))
-			} else {
-				drawCard(myCard.Front, flip_percentage, rl.White)
-			}
-		}
+func updateFlipPercentage() {
+	if flipPercentage > 0 {
+		flipPercentage -= 0.015 * delta_time
+	} else {
+		flipPercentage = 1
+		flipping = false
+		flipped = !flipped
+	}
+}
 
-		rl.EndDrawing()
+func drawFlippedCard() {
+	if flipping {
+		drawCard(card.Back, flipPercentage, colorBrightness(rl.White, -flipPercentage))
+		drawCard(card.Front, 1-flipPercentage, colorBrightness(rl.White, flipPercentage))
+	} else {
+		drawCard(card.Back, flipPercentage, rl.White)
+	}
+}
+
+func drawUnflippedCard() {
+	if flipping {
+		drawCard(card.Front, flipPercentage, colorBrightness(rl.White, -flipPercentage))
+		drawCard(card.Back, 1-flipPercentage, colorBrightness(rl.White, flipPercentage))
+	} else {
+		drawCard(card.Front, flipPercentage, rl.White)
 	}
 }
 
@@ -75,57 +192,57 @@ func colorBrightness(color rl.Color, brightness float32) rl.Color {
 	return rl.NewColor(color.R*uint8(brightness), color.G*uint8(brightness), color.B*uint8(brightness), color.A)
 }
 
-func drawCard(text string, x_percentage float32, card_color rl.Color) {
-	// Ensure x_percentage is within the range [0.0, 1.0]
-	if x_percentage < 0.0 {
-		x_percentage = 0.0
-	} else if x_percentage > 1.0 {
-		x_percentage = 1.0
+func drawCard(text string, xPercentage float32, cardColor rl.Color) {
+	// Ensure xPercentage is within the range [0.0, 1.0]
+	if xPercentage < 0.0 {
+		xPercentage = 0.0
+	} else if xPercentage > 1.0 {
+		xPercentage = 1.0
 	}
 
-	// Scale the card width with x_percentage
-	scaledCardWidth := float32(card_width) * x_percentage
+	// Scale the card width with xPercentage
+	scaledCardWidth := float32(cardWidth) * xPercentage
 
-	rl.DrawRectanglePro(rl.NewRectangle(float32(width)/2, float32(height)/2, scaledCardWidth, float32(card_height)), rl.NewVector2(scaledCardWidth/2, float32(card_height)/2), 0, card_color)
+	rl.DrawRectanglePro(rl.NewRectangle(float32(width)/2, float32(height)/2, scaledCardWidth, float32(cardHeight)), rl.NewVector2(scaledCardWidth/2, float32(cardHeight)/2), 0, cardColor)
 
-	lines := wrapText(text, card_width, font_size)
+	lines := wrapText(text, cardWidth-float32(fontSize), fontSize)
 
 	// Calculate the vertical space between lines
-	line_spacing := float32(font_size) + 5 // Convert font_size to float32
+	lineSpacing := float32(fontSize) + 5 // Convert fontSize to float32
 
 	// Draw each line
 	for i, line := range lines {
-		text_width := rl.MeasureText(line, font_size)
-		text_x := (float32(width) - float32(text_width)) / 2 // Convert width to float32
-		text_y := (float32(height)-float32(len(lines))*line_spacing)/2 + float32(i)*line_spacing
+		textWidth := rl.MeasureText(line, fontSize)
+		textX := (float32(width) - float32(textWidth)) / 2 // Convert width to float32
+		textY := (float32(height)-float32(len(lines))*lineSpacing)/2 + float32(i)*lineSpacing
 
-		// Convert text_y to int32
-		rl.DrawText(line, int32(text_x), int32(text_y), font_size, rl.Black)
+		// Convert textY to int32
+		rl.DrawText(line, int32(textX), int32(textY), fontSize, rl.Black)
 	}
 }
 
-func wrapText(text string, max_width float32, font_size int32) []string {
+func wrapText(text string, maxWidth float32, fontSize int32) []string {
 	words := strings.Fields(text)
 	var lines []string
-	current_line := ""
+	currentLine := ""
 
 	for _, word := range words {
 		// Check if adding the word to the current line exceeds the maximum width
-		if rl.MeasureText(current_line+" "+word, font_size) <= int32(max_width) {
+		if rl.MeasureText(currentLine+" "+word, fontSize) <= int32(maxWidth) {
 			// Add the word to the current line
-			if current_line != "" {
-				current_line += " "
+			if currentLine != "" {
+				currentLine += " "
 			}
-			current_line += word
+			currentLine += word
 		} else {
 			// Start a new line with the current word
-			lines = append(lines, current_line)
-			current_line = word
+			lines = append(lines, currentLine)
+			currentLine = word
 		}
 	}
 
 	// Add the last line
-	lines = append(lines, current_line)
+	lines = append(lines, currentLine)
 
 	return lines
 }
