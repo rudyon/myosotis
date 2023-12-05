@@ -7,10 +7,10 @@ func NewCards() *Cards {
 	return &Cards{}
 }
 
-func (c *Cards) GetCardFront(text string) string {
-	return "LOREM"
+func (c *Cards) GetCardFront(id int) string {
+	return flashcards[id].Front
 }
 
-func (c *Cards) GetCardBack(text string) string {
-	return "IPSUM"
+func (c *Cards) GetCardBack(id int) string {
+	return flashcards[id].Back
 }

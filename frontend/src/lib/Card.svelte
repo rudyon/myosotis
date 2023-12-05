@@ -4,21 +4,42 @@
 	let flipped = false;
 	let cardFront = "card_front";
 	let cardBack = "card_back";
+	let currentCardId = 1;
 
 	function flip() {
 		flipped = !flipped;
 	}
 
-	function getCard() {
-		GetCardFront().then((result) => (cardFront = result));
-		GetCardBack().then((result) => (cardBack = result));
+	function getCard(id) {
+		GetCardFront(id).then((result) => {
+			cardFront = result;
+		});
+
+		GetCardBack(id).then((result) => {
+			cardBack = result;
+		});
+	}
+
+	function nextCard() {
+		if (currentCardId < 2) {
+			currentCardId++;
+			getCard(currentCardId);
+		}
+	}
+
+	function previousCard() {
+		if (currentCardId > 0) {
+			currentCardId--;
+			getCard(currentCardId);
+		}
 	}
 </script>
 
-<button on:click={getCard}>function</button>
+<button on:click={previousCard}>Previous Card</button>
+<button on:click={nextCard}>Next Card</button>
 
 <div class="center">
-	<div class="card-container" on:click={flip}>
+	<div class="card-container" on:click={flip} on:keypress={flip}>
 		<div class="card front {flipped ? 'flipped_front' : 'front'}">
 			<p>{cardFront}</p>
 		</div>
@@ -57,6 +78,7 @@
 		color: black;
 		font-size: 32px;
 		backface-visibility: hidden;
+		padding: 32px;
 	}
 
 	.front {
