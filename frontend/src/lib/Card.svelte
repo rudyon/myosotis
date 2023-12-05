@@ -7,7 +7,7 @@
 </script>
 
 <div class="card-container" on:click={flip}>
-	<div class="card {flipped ? 'flipped_front' : 'front'}">
+	<div class="card front {flipped ? 'flipped_front' : 'front'}">
 		<p>The pioneer of the experimental science of memory was...</p>
 	</div>
 	<div class="card back {flipped ? 'flipped_back' : 'back'}">
