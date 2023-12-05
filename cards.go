@@ -7,6 +7,10 @@ func NewCards() *Cards {
 	return &Cards{}
 }
 
-func (c *Cards) Get(text string) string {
-	return text + "aaa"
+func (c *Cards) GetCardFront(text string) string {
+	return "LOREM"
+}
+
+func (c *Cards) GetCardBack(text string) string {
+	return "IPSUM"
 }

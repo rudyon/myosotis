@@ -1,28 +1,29 @@
 <script>
-	import { Get } from "../../wailsjs/go/main/Cards.js";
+	import { GetCardBack, GetCardFront } from "../../wailsjs/go/main/Cards.js";
 
 	let flipped = false;
-	let resultText = "this is stupid";
+	let cardFront = "card_front";
+	let cardBack = "card_back";
 
 	function flip() {
 		flipped = !flipped;
 	}
 
-	function get() {
-		flipped = false;
-		Get("asshole").then((result) => (resultText = result));
+	function getCard() {
+		GetCardFront().then((result) => (cardFront = result));
+		GetCardBack().then((result) => (cardBack = result));
 	}
 </script>
 
-<button on:click={get}>function</button>
+<button on:click={getCard}>function</button>
 
 <div class="center">
 	<div class="card-container" on:click={flip}>
 		<div class="card front {flipped ? 'flipped_front' : 'front'}">
-			<p>The pioneer of the experimental science of memory was...</p>
+			<p>{cardFront}</p>
 		</div>
 		<div class="card back {flipped ? 'flipped_back' : 'back'}">
-			<p>{resultText}</p>
+			<p>{cardBack}</p>
 		</div>
 	</div>
 </div>
