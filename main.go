@@ -14,19 +14,20 @@ var assets embed.FS
 func main() {
 	// Create an instance of the app structure
 	app := NewApp()
+	cards := NewCards()
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "myosotis",
-		Width:  800,
-		Height: 800,
+		Title:  "what",
+		Width:  1024,
+		Height: 768,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
 		BackgroundColour: &options.RGBA{R: 0, G: 0, B: 0, A: 0},
 		OnStartup:        app.startup,
 		Bind: []interface{}{
-			app,
+			app, cards,
 		},
 	})
 
