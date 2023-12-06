@@ -35,10 +35,7 @@
 	}
 </script>
 
-<button on:click={previousCard}>Previous Card</button>
-<button on:click={nextCard}>Next Card</button>
-
-<div class="center">
+<div class="center-vertical center-horizontal">
 	<div class="card-container" on:click={flip} on:keypress={flip}>
 		<div class="card front {flipped ? 'flipped_front' : 'front'}">
 			<p>{cardFront}</p>
@@ -49,20 +46,53 @@
 	</div>
 </div>
 
+<div class="center-horizontal">
+	<button on:click={previousCard}>Previous Card</button>
+	<button on:click={nextCard}>Next Card</button>
+</div>
+
+<div class="center-horizontal">
+	<button on:click={previousCard}>bad</button>
+	<button on:click={nextCard}>good</button>
+</div>
+
 <style>
-	.center {
+	button {
+		display: inline-block;
+		min-width: 140px;
+		height: 40px;
+		margin: 5px;
+		left: 20px;
+		border-radius: 12px;
+		border: none;
+		font-size: 20px;
+		line-height: 40px;
+		letter-spacing: 0.5px;
+		cursor: pointer;
+		transition: 0.1s;
+		position: relative;
+	}
+
+	.center-horizontal {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		height: 100vh;
+		width: 85lvw;
+	}
+
+	.center-vertical {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 80lvh;
 	}
 
 	.card-container {
 		perspective: 1000px;
-		width: 440px;
-		height: 300px;
+		width: 396px;
+		height: 236px;
 		position: relative;
-		text-align: center;
+		cursor: pointer;
 	}
 
 	.card {
