@@ -1,15 +1,38 @@
 [
-    {
-      "front": "What is the capital of France?",
-      "back": "Paris"
-    },
-    {
-      "front": "Who wrote 'Romeo and Juliet'?",
-      "back": "William Shakespeare"
-    },
-    {
-      "front": "What is the largest planet in our solar system?",
-      "back": "Jupiter"
-    }
-  ]
-  
+	{
+		"front": "What is the capital of France?",
+		"back": "Paris",
+		"lastReview": 0,
+		"interval": 0
+	},
+	{
+		"front": "Who wrote 'Romeo and Juliet'?",
+		"back": "William Shakespeare",
+		"lastReview": 0,
+		"interval": 0
+	},
+	{
+		"front": "Test question?",
+		"back": "Test answer",
+		"lastReview": 0,
+		"interval": 0
+	},
+	{
+		"front": "In which year did World War II end?",
+		"back": "1945",
+		"lastReview": 0,
+		"interval": 0
+	},
+	{
+		"front": "What is the largest mammal on Earth?",
+		"back": "Blue whale",
+		"lastReview": 0,
+		"interval": 0
+	},
+	{
+		"front": "Who painted the Mona Lisa?",
+		"back": "Leonardo da Vinci",
+		"lastReview": 0,
+		"interval": 0
+	}
+]

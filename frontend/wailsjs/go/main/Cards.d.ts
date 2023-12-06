@@ -4,3 +4,7 @@
 export function GetCardBack(arg1:number):Promise<string>;
 
 export function GetCardFront(arg1:number):Promise<string>;
+
+export function GetTotalCards():Promise<number>;
+
+export function UpdateCard(arg1:number,arg2:boolean):Promise<void>;

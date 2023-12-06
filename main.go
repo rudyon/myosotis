@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -15,11 +16,14 @@ import (
 var assets embed.FS
 
 type FlashCard struct {
-	Back  string `json:"back"`
-	Front string `json:"front"`
+	Front      string `json:"front"`
+	Back       string `json:"back"`
+	LastReview int    `json:"lastReview"`
+	Interval   int    `json:"interval"`
 }
 
 var flashcards []FlashCard
+var dueCards []FlashCard
 var TotalCards int
 
 func loadFlashCards(filename string) error {
@@ -38,12 +42,48 @@ func loadFlashCards(filename string) error {
 	return nil
 }
 
+func selectDueCards(flashcards []FlashCard) []FlashCard {
+	var dueCards []FlashCard
+	currentTime := int(time.Now().Unix())
+
+	for _, card := range flashcards {
+		dueTime := card.LastReview + card.Interval
+		if currentTime >= dueTime {
+			dueCards = append(dueCards, card)
+		}
+	}
+
+	return dueCards
+}
+
+func saveFlashCards(filename string) error {
+	// Marshal flashcards to JSON
+	fileContent, err := json.MarshalIndent(flashcards, "", "    ")
+	if err != nil {
+		fmt.Println("Error marshaling flashcards:", err)
+		return err
+	}
+
+	// Write JSON data to the file
+	err = os.WriteFile(filename, fileContent, 0644)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return err
+	}
+
+	fmt.Println("Flashcards saved successfully.")
+	return nil
+}
+
 func main() {
 	err := loadFlashCards("./config.json")
 	if err != nil {
 		fmt.Println("Error loading flash cards:", err)
 		return
 	}
+
+	dueCards = selectDueCards(flashcards)
+	TotalCards = len(dueCards)
 
 	// Create an instance of the app structure
 	app := NewApp()

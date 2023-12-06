@@ -9,3 +9,11 @@ export function GetCardBack(arg1) {
 export function GetCardFront(arg1) {
   return window['go']['main']['Cards']['GetCardFront'](arg1);
 }
+
+export function GetTotalCards() {
+  return window['go']['main']['Cards']['GetTotalCards']();
+}
+
+export function UpdateCard(arg1, arg2) {
+  return window['go']['main']['Cards']['UpdateCard'](arg1, arg2);
+}

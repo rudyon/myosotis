@@ -1,13 +1,29 @@
 <script>
-	import { GetCardBack, GetCardFront } from "../../wailsjs/go/main/Cards.js";
+	import {
+		GetTotalCards,
+		GetCardBack,
+		GetCardFront,
+		UpdateCard,
+	} from "../../wailsjs/go/main/Cards.js";
 
 	let flipped = false;
 	let cardFront = "card_front";
 	let cardBack = "card_back";
-	let currentCardId = 1;
+	let currentCardId = 0;
+	let totalCards = 0;
 
 	function flip() {
 		flipped = !flipped;
+	}
+
+	function getTotalCards() {
+		GetTotalCards().then((result) => {
+			totalCards = result;
+			// Check if there are cards before getting the current card
+			if (totalCards > 0) {
+				getCard(currentCardId);
+			}
+		});
 	}
 
 	function getCard(id) {
@@ -20,40 +36,47 @@
 		});
 	}
 
+	function recalledCard() {
+		UpdateCard(currentCardId, true);
+		nextCard();
+	}
+
+	function forgotCard() {
+		UpdateCard(currentCardId, false);
+		nextCard();
+	}
+
 	function nextCard() {
-		if (currentCardId < 2) {
+		if (currentCardId < totalCards - 1) {
 			currentCardId++;
 			getCard(currentCardId);
+		} else {
+			// All cards completed
+			currentCardId = totalCards;
 		}
 	}
 
-	function previousCard() {
-		if (currentCardId > 0) {
-			currentCardId--;
-			getCard(currentCardId);
-		}
-	}
+	getTotalCards();
 </script>
 
 <div class="center-vertical center-horizontal">
-	<div class="card-container" on:click={flip} on:keypress={flip}>
-		<div class="card front {flipped ? 'flipped_front' : 'front'}">
-			<p>{cardFront}</p>
+	{#if currentCardId >= totalCards}
+		<p>Completed</p>
+	{:else}
+		<div class="card-container" on:click={flip} on:keypress={flip}>
+			<div class="card front {flipped ? 'flipped_front' : 'front'}">
+				<p>{cardFront}</p>
+			</div>
+			<div class="card back {flipped ? 'flipped_back' : 'back'}">
+				<p>{cardBack}</p>
+			</div>
 		</div>
-		<div class="card back {flipped ? 'flipped_back' : 'back'}">
-			<p>{cardBack}</p>
-		</div>
-	</div>
+	{/if}
 </div>
 
 <div class="center-horizontal">
-	<button on:click={previousCard}>Previous Card</button>
-	<button on:click={nextCard}>Next Card</button>
-</div>
-
-<div class="center-horizontal">
-	<button on:click={previousCard}>bad</button>
-	<button on:click={nextCard}>good</button>
+	<button on:click={forgotCard}>bad</button>
+	<button on:click={recalledCard}>good</button>
 </div>
 
 <style>
