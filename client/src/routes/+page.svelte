@@ -1,4 +1,19 @@
 <script>
+	/* some simple testing stuff for now to make sure the restapi works */
+	let message = '';
+
+	async function fetchMessage() {
+		const res = await fetch('http://localhost:8090/hello');
+		if (res.ok) {
+			const data = await res.json();
+			message = data.message;
+		} else {
+			message = 'Failed to fetch message.';
+		}
+	}
+
+	fetchMessage();
+
 	let isFlipped = false;
 
 	function flipCard() {
@@ -6,6 +21,7 @@
 	}
 </script>
 
+<h1>{message || 'Loading...'}</h1>
 <div id="cards">
 	<div id="current_card">
 		<div class="scale_on_hover" on:click={flipCard}>
@@ -25,7 +41,7 @@
 
 <style>
 	#cards {
-		position: absolute;
+		position: relative; /* this will need to changel later probably */
 		left: 100px;
 		top: 35px;
 	}
