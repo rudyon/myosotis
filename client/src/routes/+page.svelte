@@ -1,44 +1,84 @@
 <script>
-	/* some simple testing stuff for now to make sure the restapi works */
-	let message = '';
+	let frontText = 'Loading...';
+	let backText = 'Loading...';
+	let isFlipped = false;
+	let cards = [];
+	let cardIndex = 0;
 
-	async function fetchMessage() {
-		const res = await fetch('http://localhost:8090/hello');
-		if (res.ok) {
-			const data = await res.json();
-			message = data.message;
-		} else {
-			message = 'Failed to fetch message.';
+	async function fetchCards() {
+		try {
+			const res = await fetch('http://localhost:8090/api/collections/cards/records');
+			if (res.ok) {
+				const data = await res.json();
+				cards = data.items;
+				if (cards.length > 0) {
+					loadCard(); // Load the first card
+				}
+			} else {
+				frontText = 'Failed to load cards.';
+				backText = '';
+			}
+		} catch (error) {
+			frontText = 'Error fetching cards.';
+			backText = '';
+			console.error('Error:', error);
 		}
 	}
 
-	fetchMessage();
+	function loadCard() {
+		frontText = cards[cardIndex].front;
+		backText = cards[cardIndex].back;
+	}
 
-	let isFlipped = false;
+	function nextCard() {
+		if (cardIndex < cards.length - 1) {
+			cardIndex++;
+			loadCard();
+		}
+	}
+
+	function prevCard() {
+		if (cardIndex > 0) {
+			cardIndex--;
+			loadCard();
+		}
+	}
 
 	function flipCard() {
 		isFlipped = !isFlipped;
 	}
+
+	fetchCards();
 </script>
 
-<h1>{message || 'Loading...'}</h1>
 <a href="/login">login page</a>
+
+<h1>Flashcards</h1>
+
 <div id="cards">
 	<div id="current_card">
 		<div class="scale_on_hover" on:click={flipCard}>
 			<div id="flip-container" flip={isFlipped ? 'yes' : 'no'}>
 				<div class="flipper">
 					<div id="card_front" class="card">
-						<p>front</p>
+						<p>{frontText}</p>
 					</div>
 					<div id="card_back" class="card">
-						<p>back</p>
+						<p>{backText}</p>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
+
+<br />
+<br />
+<br />
+<br />
+
+<button on:click={prevCard} disabled={cardIndex === 0}>Previous</button>
+<button on:click={nextCard} disabled={cardIndex === cards.length - 1}>Next</button>
 
 <style>
 	#cards {
