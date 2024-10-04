@@ -22,6 +22,7 @@
 </script>
 
 <h1>{message || 'Loading...'}</h1>
+<a href="/login">login page</a>
 <div id="cards">
 	<div id="current_card">
 		<div class="scale_on_hover" on:click={flipCard}>
