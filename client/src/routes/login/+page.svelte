@@ -1,33 +1,44 @@
 <script>
 	import { pb } from '$lib/pocketbase';
+	import { goto } from '$app/navigation';
+
 	let email = '';
 	let password = '';
-	let authData = null;
+	let errorMessage = '';
+	let isLoggedIn = false;
 
-	async function handleSubmit(event) {
+	if (pb.authStore.isValid) {
+		isLoggedIn = true;
+	}
+
+	async function handleLogin(event) {
 		event.preventDefault();
 
 		try {
-			authData = await pb.collection('users').authWithPassword(email, password);
+			const authData = await pb.collection('users').authWithPassword(email, password);
+			goto('/app');
 		} catch (error) {
-			console.error('Login failed:', error);
-			authData = null;
+			errorMessage = 'Login failed. Please try again.';
+			console.error('Error during login:', error);
 		}
 	}
 </script>
 
-<form on:submit={handleSubmit}>
-	<label for="email">email</label><br />
-	<input type="text" id="email" bind:value={email} name="email" /><br />
-
-	<label for="password">password</label><br />
-	<input type="password" id="password" bind:value={password} name="password" /><br />
-
-	<input type="submit" value="Submit" />
-</form>
-
-{#if authData}
-	<p>logged in as {pb.authStore.model.username}</p>
+{#if isLoggedIn}
+	<p>You are already logged in! Click below to go to the app:</p>
+	<a href="/app">Go to App</a>
 {:else}
-	<p>not logged in</p>
+	<form on:submit={handleLogin}>
+		<label for="email">Email:</label><br />
+		<input type="email" id="email" bind:value={email} required /><br />
+
+		<label for="password">Password:</label><br />
+		<input type="password" id="password" bind:value={password} required /><br />
+
+		<input type="submit" value="Login" />
+	</form>
+
+	{#if errorMessage}
+		<p style="color: red;">{errorMessage}</p>
+	{/if}
 {/if}
