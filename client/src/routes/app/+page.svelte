@@ -1,21 +1,24 @@
 <script>
+	import { pb } from '$lib/pocketbase';
+
 	let frontText = 'Loading...';
 	let backText = 'Loading...';
 	let isFlipped = false;
 	let cards = [];
 	let cardIndex = 0;
+	let userId = pb.authStore.model?.id;
 
 	async function fetchCards() {
 		try {
-			const res = await fetch('http://localhost:8090/api/collections/cards/records');
-			if (res.ok) {
-				const data = await res.json();
-				cards = data.items;
-				if (cards.length > 0) {
-					loadCard(); // Load the first card
-				}
+			const res = await pb.collection('cards').getFullList({
+				filter: `owner = "${userId}"`
+			});
+
+			if (res.length > 0) {
+				cards = res;
+				loadCard();
 			} else {
-				frontText = 'Failed to load cards.';
+				frontText = 'You have no cards.';
 				backText = '';
 			}
 		} catch (error) {
@@ -26,8 +29,8 @@
 	}
 
 	function loadCard() {
-		frontText = cards[cardIndex].front;
-		backText = cards[cardIndex].back;
+		frontText = cards[cardIndex]?.front || 'No front text available.';
+		backText = cards[cardIndex]?.back || 'No back text available.';
 	}
 
 	function nextCard() {
@@ -52,6 +55,8 @@
 </script>
 
 <h1>Myosotis</h1>
+
+<a href="/create">Create cards</a>
 
 <div id="cards">
 	<div id="current_card">
@@ -80,42 +85,35 @@
 
 <style>
 	#cards {
-		position: relative; /* this will need to changel later probably */
+		position: relative;
 		left: 100px;
 		top: 35px;
 	}
 
 	#current_card {
-		top: 0;
 		width: 400px;
 		height: 240px;
-		transition: left 0.3s ease-in-out;
 		position: relative;
-		left: 0;
 	}
 
 	.card {
 		width: 396px;
 		height: 236px;
 		border-radius: 20px;
-		overflow: hidden;
 		font-size: 40px;
 		border: 2px inset #000;
 		text-align: center;
-		backface-visibility: hidden; /* Hide the back of each card when it's flipped */
-		position: absolute; /* Stack front and back cards on top of each other */
-		top: 0;
-		left: 0;
-		display: flex; /* Enable flexbox */
-		justify-content: center; /* Center horizontally */
-		align-items: center; /* Center vertically */
+		backface-visibility: hidden;
+		position: absolute;
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 
 	.scale_on_hover {
 		width: 100%;
 		height: 100%;
 		transition: 0.15s;
-		transform-origin: 200px 120px;
 		cursor: pointer;
 	}
 
@@ -127,7 +125,6 @@
 		width: 100%;
 		height: 100%;
 		perspective: 1200px;
-		position: relative;
 	}
 
 	#flip-container[flip='yes'] .flipper {
@@ -143,7 +140,7 @@
 		height: 100%;
 		transition: 0.5s;
 		transform-style: preserve-3d;
-		position: relative; /* Ensure the cards stay within the container */
+		position: relative;
 	}
 
 	#card_front {
