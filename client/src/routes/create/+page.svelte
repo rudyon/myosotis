@@ -1,22 +1,36 @@
 <script>
 	import { pb } from '$lib/pocketbase';
-	import { goto } from '$app/navigation';
 
 	let front = '';
 	let back = '';
 	let errorMessage = '';
 	let successMessage = '';
-	let isLoggedIn = false;
+	let isLoggedIn = pb.authStore.isValid; // Check if the user is logged in
 
 	async function handleSubmit(event) {
 		event.preventDefault();
 
+		if (!isLoggedIn) {
+			errorMessage = 'You must be logged in to create a card.';
+			return;
+		}
+
+		if (!front || !back) {
+			errorMessage = 'Please fill out both fields before submitting.';
+			return;
+		}
+
 		try {
+			const now = Math.floor(Date.now() / 1000);
 			const cardData = {
 				front: front,
 				back: back,
-				owner: pb.authStore.model.id
+				owner: pb.authStore.model.id,
+				lastReview: now,
+				interval: 86400
 			};
+
+			console.log('Card Data:', cardData);
 
 			await pb.collection('cards').create(cardData);
 			successMessage = 'Card created successfully!';

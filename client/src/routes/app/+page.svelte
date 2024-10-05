@@ -11,21 +11,23 @@
 
 	async function fetchCards() {
 		try {
+			const now = Math.floor(Date.now() / 1000);
 			const res = await pb.collection('cards').getFullList({
 				filter: `owner = "${userId}"`
 			});
 
-			if (res.length > 0) {
-				cards = res;
+			cards = res.filter((card) => card.lastReview + card.interval <= now);
+
+			if (cards.length > 0) {
 				loadCard();
 			} else {
-				frontText = 'You have no cards.';
+				frontText = 'You have no cards to review.';
 				backText = '';
 			}
 		} catch (error) {
-			frontText = 'Error fetching cards.';
+			console.error('Error fetching cards:', error);
+			frontText = 'Error fetching cards. Please try again.';
 			backText = '';
-			console.error('Error:', error);
 		}
 	}
 
@@ -39,17 +41,32 @@
 		}, 300);
 	}
 
-	function nextCard() {
+	async function handleRemember() {
+		await updateCard(true);
+		loadNextCard();
+	}
+
+	async function handleForget() {
+		await updateCard(false);
+		loadNextCard();
+	}
+
+	async function updateCard(remembered) {
+		const now = Math.floor(Date.now() / 1000);
+		let newInterval = remembered ? cards[cardIndex].interval * 2 : 86400;
+		await pb.collection('cards').update(cards[cardIndex].id, {
+			lastReview: now,
+			interval: newInterval
+		});
+	}
+
+	function loadNextCard() {
 		if (cardIndex < cards.length - 1) {
 			cardIndex++;
 			loadCard();
-		}
-	}
-
-	function prevCard() {
-		if (cardIndex > 0) {
-			cardIndex--;
-			loadCard();
+		} else {
+			frontText = 'No more cards to review.';
+			backText = '';
 		}
 	}
 
@@ -62,7 +79,7 @@
 
 <h1>Myosotis</h1>
 
-<a href="/create">Create cards</a>
+<a href="/browse">Browse your cards</a>
 
 <div id="cards">
 	<div id="current_card">
@@ -92,8 +109,8 @@
 <br />
 <br />
 
-<button on:click={prevCard} disabled={cardIndex === 0}>Previous</button>
-<button on:click={nextCard} disabled={cardIndex === cards.length - 1}>Next</button>
+<button on:click={handleForget}>Forgot</button>
+<button on:click={handleRemember}>Remembered</button>
 
 <style>
 	#cards {
