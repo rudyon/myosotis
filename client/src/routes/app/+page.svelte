@@ -7,6 +7,7 @@
 	let cards = [];
 	let cardIndex = 0;
 	let userId = pb.authStore.model?.id;
+	let loading = false;
 
 	async function fetchCards() {
 		try {
@@ -29,8 +30,13 @@
 	}
 
 	function loadCard() {
-		frontText = cards[cardIndex]?.front || 'No front text available.';
-		backText = cards[cardIndex]?.back || 'No back text available.';
+		loading = true;
+		setTimeout(() => {
+			frontText = cards[cardIndex]?.front || 'No front text available.';
+			backText = cards[cardIndex]?.back || 'No back text available.';
+			isFlipped = false;
+			loading = false;
+		}, 300);
 	}
 
 	function nextCard() {
@@ -61,16 +67,22 @@
 <div id="cards">
 	<div id="current_card">
 		<div class="scale_on_hover" on:click={flipCard}>
-			<div id="flip-container" flip={isFlipped ? 'yes' : 'no'}>
-				<div class="flipper">
-					<div id="card_front" class="card">
-						<p>{frontText}</p>
-					</div>
-					<div id="card_back" class="card">
-						<p>{backText}</p>
+			{#if loading}
+				<div class="card hidden">
+					<p>Loading...</p>
+				</div>
+			{:else}
+				<div id="flip-container" flip={isFlipped ? 'yes' : 'no'}>
+					<div class="flipper">
+						<div id="card_front" class="card">
+							<p>{frontText}</p>
+						</div>
+						<div id="card_back" class="card">
+							<p>{backText}</p>
+						</div>
 					</div>
 				</div>
-			</div>
+			{/if}
 		</div>
 	</div>
 </div>
@@ -152,5 +164,9 @@
 	#card_back {
 		transform: rotateY(180deg);
 		background: #fff;
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>
