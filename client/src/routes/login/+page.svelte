@@ -4,6 +4,7 @@
 
 	let email = '';
 	let password = '';
+	let key = ''; // Added key field
 	let errorMessage = '';
 	let successMessage = '';
 	let isLoggedIn = false;
@@ -30,16 +31,37 @@
 	async function handleRegister() {
 		try {
 			isLoading = true;
+
+			// Check if the key exists in the 'keys' collection and if it is unused
+			const keyRecords = await pb.collection('keys').getList(1, 1, {
+				filter: `key = "${key}"`
+			});
+
+			if (keyRecords.items.length === 0) {
+				throw new Error('Invalid key. Please try again.');
+			}
+
+			const keyRecord = keyRecords.items[0];
+
+			if (keyRecord.used) {
+				throw new Error('This key has already been used.');
+			}
+
 			const userData = {
 				email: email,
 				password: password,
 				passwordConfirm: password
 			};
+
 			await pb.collection('users').create(userData);
+
+			// Mark the key as used
+			await pb.collection('keys').update(keyRecord.id, { used: true });
+
 			successMessage = 'Registration successful! You can now log in.';
 			isRegisterMode = false;
 		} catch (error) {
-			errorMessage = 'Registration failed. Please try a different email.';
+			errorMessage = error.message || 'Registration failed. Please try again.';
 			console.error('Error during registration:', error);
 		} finally {
 			isLoading = false;
@@ -91,6 +113,13 @@
 						placeholder="••••••••"
 					/>
 				</div>
+
+				{#if isRegisterMode}
+					<div class="form-group">
+						<label for="key">Key</label>
+						<input type="text" id="key" bind:value={key} required placeholder="Enter your key" />
+					</div>
+				{/if}
 
 				<button type="submit" class="button-primary" disabled={isLoading}>
 					{#if isLoading}

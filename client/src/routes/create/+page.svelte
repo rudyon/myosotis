@@ -32,7 +32,7 @@
 				back: back.trim(),
 				owner: pb.authStore.model.id,
 				lastReview: now,
-				interval: 86400
+				interval: 0
 			};
 
 			await pb.collection('cards').create(cardData);

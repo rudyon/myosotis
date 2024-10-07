@@ -23,6 +23,7 @@
 			} else {
 				frontText = 'You have completed all reviews for now!';
 				backText = '';
+				isFlipped = false; // Ensure it is not flipped
 			}
 		} catch (error) {
 			console.error('Error fetching cards:', error);
@@ -56,27 +57,21 @@
 		let newInterval;
 
 		if (remembered) {
-			if (cards[cardIndex].box < 6) {
-				await pb.collection('cards').update(cards[cardIndex].id, {
-					lastReview: now,
-					interval: newInterval,
-					box: cards[cardIndex].box + 1
-				});
-			} else {
+			if (cards[cardIndex].interval === 0) {
+				newInterval = 86400;
+			} else if (cards[cardIndex].interval < 604800) {
 				newInterval = cards[cardIndex].interval * 2;
-				await pb.collection('cards').update(cards[cardIndex].id, {
-					lastReview: now,
-					interval: newInterval
-				});
+			} else {
+				newInterval = cards[cardIndex].interval * 1.5;
 			}
 		} else {
 			newInterval = 86400;
-			await pb.collection('cards').update(cards[cardIndex].id, {
-				lastReview: now,
-				interval: newInterval,
-				box: 0
-			});
 		}
+
+		await pb.collection('cards').update(cards[cardIndex].id, {
+			lastReview: now,
+			interval: newInterval
+		});
 	}
 
 	function loadNextCard() {
@@ -90,7 +85,9 @@
 	}
 
 	function flipCard() {
-		isFlipped = !isFlipped;
+		if (cards.length > 0) {
+			isFlipped = !isFlipped;
+		}
 	}
 
 	fetchCards();
@@ -119,7 +116,7 @@
 				<div class="card loading">
 					<div class="loading-spinner"></div>
 				</div>
-			{:else}
+			{:else if cards.length > 0}
 				<div class="flip-container" class:flipped={isFlipped} on:click={flipCard}>
 					<div class="flipper">
 						<div class="card front">
@@ -130,17 +127,37 @@
 						</div>
 					</div>
 				</div>
+			{:else}
+				<div class="no-cards-message">
+					<p>{frontText}</p>
+				</div>
 			{/if}
 		</div>
 
 		<div class="button-container">
-			<button class="button forget" on:click={handleForget}> Forgot </button>
-			<button class="button remember" on:click={handleRemember}> Remembered </button>
+			<button class="button forget" on:click={handleForget} disabled={cards.length === 0}>
+				Forgot
+			</button>
+			<button class="button remember" on:click={handleRemember} disabled={cards.length === 0}>
+				Remembered
+			</button>
 		</div>
 	</main>
 </div>
 
 <style>
+	.no-cards-message {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 300px;
+		font-size: 1.5rem;
+		color: #f5f5f5;
+		background: rgba(51, 51, 51, 0.8);
+		border-radius: 1rem;
+		text-align: center;
+	}
+
 	.app-container {
 		max-width: 800px;
 		margin: 0 auto;
@@ -272,6 +289,12 @@
 	.remember {
 		background-color: #22c55e;
 		border-color: #16a34a;
+	}
+
+	.remember:disabled,
+	.forget:disabled {
+		background-color: inherit;
+		border-color: inherit;
 	}
 
 	@keyframes spin {
