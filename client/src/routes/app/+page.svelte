@@ -21,7 +21,7 @@
 			if (cards.length > 0) {
 				loadCard();
 			} else {
-				frontText = 'You have no cards to review.';
+				frontText = 'You have completed all reviews for now!';
 				backText = '';
 			}
 		} catch (error) {
@@ -34,8 +34,8 @@
 	function loadCard() {
 		loading = true;
 		setTimeout(() => {
-			frontText = cards[cardIndex]?.front || 'No front text available.';
-			backText = cards[cardIndex]?.back || 'No back text available.';
+			frontText = cards[cardIndex]?.front || 'No cards available.';
+			backText = cards[cardIndex]?.back || 'No content available.';
 			isFlipped = false;
 			loading = false;
 		}, 300);
@@ -65,7 +65,7 @@
 			cardIndex++;
 			loadCard();
 		} else {
-			frontText = 'No more cards to review.';
+			frontText = 'All done for now! Great job! 🎉';
 			backText = '';
 		}
 	}
@@ -77,113 +77,197 @@
 	fetchCards();
 </script>
 
-<h1>Myosotis</h1>
+<div class="app-container">
+	<header>
+		<h1 class="gradient-text">Myosotis</h1>
+		<a href="/browse" class="button">Browse Cards</a>
+	</header>
 
-<a href="/browse">Browse your cards</a>
+	<main>
+		<div class="stats">
+			<div class="stat">
+				<span class="stat-label">Remaining</span>
+				<span class="stat-value">{cards.length - cardIndex}</span>
+			</div>
+			<div class="stat">
+				<span class="stat-label">Reviewed</span>
+				<span class="stat-value">{cardIndex}</span>
+			</div>
+		</div>
 
-<div id="cards">
-	<div id="current_card">
-		<div class="scale_on_hover" on:click={flipCard}>
+		<div class="card-container">
 			{#if loading}
-				<div class="card hidden">
-					<p>Loading...</p>
+				<div class="card loading">
+					<div class="loading-spinner"></div>
 				</div>
 			{:else}
-				<div id="flip-container" flip={isFlipped ? 'yes' : 'no'}>
+				<div class="flip-container" class:flipped={isFlipped} on:click={flipCard}>
 					<div class="flipper">
-						<div id="card_front" class="card">
+						<div class="card front">
 							<p>{frontText}</p>
 						</div>
-						<div id="card_back" class="card">
+						<div class="card back">
 							<p>{backText}</p>
 						</div>
 					</div>
 				</div>
 			{/if}
 		</div>
-	</div>
+
+		<div class="button-container">
+			<button class="button forget" on:click={handleForget}> Forgot </button>
+			<button class="button remember" on:click={handleRemember}> Remembered </button>
+		</div>
+	</main>
 </div>
 
-<br />
-<br />
-<br />
-<br />
-
-<button on:click={handleForget}>Forgot</button>
-<button on:click={handleRemember}>Remembered</button>
-
 <style>
-	#cards {
-		position: relative;
-		left: 100px;
-		top: 35px;
+	.app-container {
+		max-width: 800px;
+		margin: 0 auto;
+		padding: 2rem 1rem;
 	}
 
-	#current_card {
-		width: 400px;
-		height: 240px;
-		position: relative;
+	header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 2rem;
 	}
 
-	.card {
-		width: 396px;
-		height: 236px;
-		border-radius: 20px;
-		font-size: 40px;
-		border: 2px inset #000;
-		text-align: center;
-		backface-visibility: hidden;
-		position: absolute;
+	h1 {
+		font-size: 2rem;
+		margin: 0;
+	}
+
+	.stats {
 		display: flex;
 		justify-content: center;
+		gap: 2rem;
+		margin-bottom: 2rem;
+	}
+
+	.stat {
+		display: flex;
+		flex-direction: column;
 		align-items: center;
 	}
 
-	.scale_on_hover {
+	.stat-label {
+		font-size: 0.875rem;
+		color: #94a3b8;
+	}
+
+	.stat-value {
+		font-size: 1.5rem;
+		font-weight: 600;
+	}
+
+	.card-container {
+		perspective: 1000px;
+		width: 100%;
+		max-width: 500px;
+		height: 300px;
+		margin: 0 auto 2rem;
+	}
+
+	.flip-container {
 		width: 100%;
 		height: 100%;
-		transition: 0.15s;
+		position: relative;
 		cursor: pointer;
+		transition: transform 0.1s;
 	}
 
-	.scale_on_hover:hover {
-		transform: scale(1.03);
+	.flip-container:hover {
+		transform: scale(1.02);
 	}
 
-	#flip-container {
-		width: 100%;
-		height: 100%;
-		perspective: 1200px;
-	}
-
-	#flip-container[flip='yes'] .flipper {
+	.flip-container.flipped .flipper {
 		transform: rotateY(180deg);
 	}
 
-	#flip-container[flip='no'] .flipper {
-		transform: rotateY(0deg);
-	}
-
-	#flip-container .flipper {
+	.flipper {
 		width: 100%;
 		height: 100%;
-		transition: 0.5s;
+		transition: transform 0.6s;
 		transform-style: preserve-3d;
 		position: relative;
 	}
 
-	#card_front {
-		z-index: 2;
-		transform: rotateY(0deg);
-		background: #fff;
+	.card {
+		width: 100%;
+		height: 100%;
+		padding: 2rem;
+		position: absolute;
+		backface-visibility: hidden;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-radius: 1rem;
+		background: var(--card-bg);
+		border: 1px solid var(--border-color);
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	}
 
-	#card_back {
+	.card p {
+		font-size: 1.5rem;
+		margin: 0;
+		text-align: center;
+	}
+
+	.card.back {
 		transform: rotateY(180deg);
-		background: #fff;
 	}
 
-	.hidden {
-		display: none;
+	.card.loading {
+		justify-content: center;
+		align-items: center;
+	}
+
+	.loading-spinner {
+		width: 40px;
+		height: 40px;
+		border: 4px solid var(--border-color);
+		border-top-color: var(--accent-color);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
+
+	.button-container {
+		display: flex;
+		justify-content: center;
+		gap: 1rem;
+		margin-top: 2rem;
+	}
+
+	button {
+		min-width: 120px;
+	}
+
+	.forget {
+		background-color: #ef4444;
+		border-color: #dc2626;
+	}
+
+	.remember {
+		background-color: #22c55e;
+		border-color: #16a34a;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	@media (max-width: 600px) {
+		.card-container {
+			height: 250px;
+		}
+
+		.card p {
+			font-size: 1.25rem;
+		}
 	}
 </style>

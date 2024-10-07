@@ -7,6 +7,8 @@
 	let errorMessage = '';
 	let successMessage = '';
 	let isLoggedIn = false;
+	let isLoading = false;
+	let isRegisterMode = false;
 
 	if (pb.authStore.isValid) {
 		isLoggedIn = true;
@@ -14,63 +16,201 @@
 
 	async function handleLogin() {
 		try {
+			isLoading = true;
 			const authData = await pb.collection('users').authWithPassword(email, password);
 			goto('/app');
 		} catch (error) {
-			errorMessage = 'Login failed. Please try again.';
+			errorMessage = 'Login failed. Please check your credentials and try again.';
 			console.error('Error during login:', error);
+		} finally {
+			isLoading = false;
 		}
 	}
 
 	async function handleRegister() {
 		try {
+			isLoading = true;
 			const userData = {
 				email: email,
 				password: password,
 				passwordConfirm: password
 			};
-
 			await pb.collection('users').create(userData);
 			successMessage = 'Registration successful! You can now log in.';
+			isRegisterMode = false;
 		} catch (error) {
-			errorMessage = 'Registration failed. Please try again.';
+			errorMessage = 'Registration failed. Please try a different email.';
 			console.error('Error during registration:', error);
+		} finally {
+			isLoading = false;
 		}
 	}
 
-	// Handle form submission
-	async function handleSubmit(event, action) {
+	async function handleSubmit(event) {
 		event.preventDefault();
 		errorMessage = '';
 		successMessage = '';
 
-		if (action === 'login') {
-			await handleLogin();
-		} else if (action === 'register') {
+		if (isRegisterMode) {
 			await handleRegister();
+		} else {
+			await handleLogin();
 		}
 	}
 </script>
 
-{#if isLoggedIn}
-	<p>You are already logged in! Click below to go to the app:</p>
-	<a href="/app">Go to App</a>
-{:else}
-	<form>
-		<label for="email">Email</label><br />
-		<input type="email" id="email" bind:value={email} required /><br />
+<div class="auth-container">
+	{#if isLoggedIn}
+		<div class="card text-center">
+			<h2>Welcome Back! 👋</h2>
+			<p>You're already logged in. Ready to continue your learning journey?</p>
+			<a href="/app" class="button">Go to App</a>
+		</div>
+	{:else}
+		<div class="auth-card card">
+			<h2 class="gradient-text">{isRegisterMode ? 'Create Account' : 'Welcome Back'}</h2>
+			<p class="auth-subtitle">
+				{isRegisterMode
+					? 'Start your learning journey today!'
+					: 'Sign in to continue your progress'}
+			</p>
 
-		<label for="password">Password</label><br />
-		<input type="password" id="password" bind:value={password} required /><br />
+			<form on:submit={handleSubmit}>
+				<div class="form-group">
+					<label for="email">Email</label>
+					<input type="email" id="email" bind:value={email} required placeholder="your@email.com" />
+				</div>
 
-		<button on:click={(e) => handleSubmit(e, 'login')}>Login</button>
-		<button on:click={(e) => handleSubmit(e, 'register')}>Register</button>
-	</form>
+				<div class="form-group">
+					<label for="password">Password</label>
+					<input
+						type="password"
+						id="password"
+						bind:value={password}
+						required
+						placeholder="••••••••"
+					/>
+				</div>
 
-	{#if errorMessage}
-		<p style="color: red;">{errorMessage}</p>
+				<button type="submit" class="button-primary" disabled={isLoading}>
+					{#if isLoading}
+						Loading...
+					{:else}
+						{isRegisterMode ? 'Create Account' : 'Sign In'}
+					{/if}
+				</button>
+			</form>
+
+			{#if errorMessage}
+				<p class="error-message">{errorMessage}</p>
+			{/if}
+			{#if successMessage}
+				<p class="success-message">{successMessage}</p>
+			{/if}
+
+			<div class="auth-footer">
+				<button class="button-text" on:click={() => (isRegisterMode = !isRegisterMode)}>
+					{isRegisterMode ? 'Already have an account? Sign In' : 'Need an account? Register'}
+				</button>
+			</div>
+		</div>
 	{/if}
-	{#if successMessage}
-		<p style="color: green;">{successMessage}</p>
-	{/if}
-{/if}
+</div>
+
+<style>
+	.auth-container {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 100vh;
+		padding: 1rem;
+	}
+
+	.auth-card {
+		width: 100%;
+		max-width: 400px;
+	}
+
+	.auth-card h2 {
+		margin-bottom: 0.5rem;
+		font-size: 1.75rem;
+	}
+
+	.auth-subtitle {
+		color: #94a3b8;
+		margin-bottom: 1.5rem;
+	}
+
+	.form-group {
+		margin-bottom: 1rem;
+	}
+
+	.form-group label {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-weight: 500;
+	}
+
+	input {
+		width: 100%;
+		padding: 0.75rem;
+		border: 1px solid var(--border-color);
+		border-radius: 6px;
+		background-color: rgba(255, 255, 255, 0.05);
+		color: var(--text-color);
+		transition: border-color 0.3s;
+	}
+
+	input:focus {
+		outline: none;
+		border-color: var(--accent-color);
+	}
+
+	.button-primary {
+		width: 100%;
+		background: linear-gradient(45deg, var(--accent-color), var(--accent-color-2));
+		color: white;
+		font-weight: 500;
+		margin-top: 1rem;
+	}
+
+	.button-primary:disabled {
+		opacity: 0.7;
+		cursor: not-allowed;
+	}
+
+	.button-text {
+		background: none;
+		border: none;
+		color: var(--accent-color);
+		padding: 0;
+		font-size: 0.875rem;
+	}
+
+	.button-text:hover {
+		color: var(--accent-color-2);
+		background: none;
+		border: none;
+	}
+
+	.auth-footer {
+		margin-top: 1.5rem;
+		text-align: center;
+	}
+
+	.error-message {
+		color: #ef4444;
+		margin-top: 1rem;
+		font-size: 0.875rem;
+	}
+
+	.success-message {
+		color: #22c55e;
+		margin-top: 1rem;
+		font-size: 0.875rem;
+	}
+
+	.text-center {
+		text-align: center;
+	}
+</style>
