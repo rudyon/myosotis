@@ -1,21 +1,21 @@
 <div class="hero-container">
-	<img src="/api/placeholder/150/150" alt="Cute mascot" class="mascot" />
-
 	<h1 class="hero-title">Welcome to Myosotis!</h1>
 	<p class="hero-subtitle">Bloom your knowledge with our delightful flashcard experience ✨</p>
 
 	<div class="features">
 		<div class="feature-card">
 			<h3>Adaptive Learning</h3>
-			<p><add text about smart algorithm></add></p>
+			<p>
+				Myosotis uses the Leitner spaced repetition algorithm by default. New algorithms will be
+				added in the future and you will be able to choose from them.
+			</p>
 		</div>
 		<div class="feature-card">
 			<h3>Beautiful Design</h3>
-			<p><add text about user experience></add></p>
-		</div>
-		<div class="feature-card">
-			<h3>Study Together</h3>
-			<p><add text about social features></add></p>
+			<p>
+				We are aiming for a pleasing design to the eye. And good intuitive UX. Sadly the UI and UX
+				are still highly a work in progress.
+			</p>
 		</div>
 	</div>
 
