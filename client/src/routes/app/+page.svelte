@@ -53,11 +53,30 @@
 
 	async function updateCard(remembered) {
 		const now = Math.floor(Date.now() / 1000);
-		let newInterval = remembered ? cards[cardIndex].interval * 2 : 86400;
-		await pb.collection('cards').update(cards[cardIndex].id, {
-			lastReview: now,
-			interval: newInterval
-		});
+		let newInterval;
+
+		if (remembered) {
+			if (cards[cardIndex].box < 6) {
+				await pb.collection('cards').update(cards[cardIndex].id, {
+					lastReview: now,
+					interval: newInterval,
+					box: cards[cardIndex].box + 1
+				});
+			} else {
+				newInterval = cards[cardIndex].interval * 2;
+				await pb.collection('cards').update(cards[cardIndex].id, {
+					lastReview: now,
+					interval: newInterval
+				});
+			}
+		} else {
+			newInterval = 86400;
+			await pb.collection('cards').update(cards[cardIndex].id, {
+				lastReview: now,
+				interval: newInterval,
+				box: 0
+			});
+		}
 	}
 
 	function loadNextCard() {
